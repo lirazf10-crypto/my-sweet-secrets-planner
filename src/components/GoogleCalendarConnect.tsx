@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 export default function GoogleCalendarConnect() {
   const [linked, setLinked] = useState<boolean | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     supabase.auth.getUserIdentities().then(({ data }) => {
@@ -15,7 +16,8 @@ export default function GoogleCalendarConnect() {
 
   const connect = async () => {
     setConnecting(true);
-    await supabase.auth.linkIdentity({
+    setError("");
+    const { error } = await supabase.auth.linkIdentity({
       provider: "google",
       options: {
         scopes: "https://www.googleapis.com/auth/calendar.events",
@@ -23,6 +25,10 @@ export default function GoogleCalendarConnect() {
         redirectTo: window.location.origin,
       },
     });
+    if (error) {
+      setError(error.message);
+      setConnecting(false);
+    }
   };
 
   if (linked === null) return null;
@@ -37,9 +43,12 @@ export default function GoogleCalendarConnect() {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={connect} disabled={connecting}>
-      <CalendarPlus className="w-4 h-4" />
-      חיבור ליומן גוגל
-    </Button>
+    <div className="flex flex-col items-end gap-1">
+      <Button variant="outline" size="sm" onClick={connect} disabled={connecting}>
+        <CalendarPlus className="w-4 h-4" />
+        חיבור ליומן גוגל
+      </Button>
+      {error && <p className="text-xs text-destructive max-w-[200px] text-left" dir="ltr">{error}</p>}
+    </div>
   );
 }
