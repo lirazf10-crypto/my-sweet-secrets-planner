@@ -343,6 +343,24 @@ export type Database = {
           },
         ]
       }
+      google_calendar_tokens: {
+        Row: {
+          id: string
+          refresh_token: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          refresh_token: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          refresh_token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -20,6 +20,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setLoading(false);
+
+      const refreshToken = (session as unknown as { provider_refresh_token?: string })?.provider_refresh_token;
+      if (refreshToken) {
+        supabase
+          .from("google_calendar_tokens")
+          .delete()
+          .gte("updated_at", "1900-01-01")
+          .then(() => supabase.from("google_calendar_tokens").insert({ refresh_token: refreshToken }));
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {

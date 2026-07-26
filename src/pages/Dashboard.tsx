@@ -10,6 +10,7 @@ import ContentPanel from "@/components/ContentPanel";
 import KitchenPanel from "@/components/KitchenPanel";
 import HomePanel from "@/components/HomePanel";
 import WorkshopsPanel from "@/components/WorkshopsPanel";
+import GoogleCalendarConnect from "@/components/GoogleCalendarConnect";
 
 const PROJECTS = [
   { id: "orders", label: "הזמנות", ready: true },
@@ -34,6 +35,7 @@ export default function Dashboard() {
             <h1 className="text-lg font-heading font-bold leading-tight">סודות מתוקים</h1>
             <p className="text-sm text-muted-foreground leading-tight">הסדר שלי</p>
           </div>
+          <GoogleCalendarConnect />
           <Button
             variant={wakeLockActive ? "default" : "outline"}
             size="icon"
