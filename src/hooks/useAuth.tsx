@@ -17,18 +17,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const saveGoogleRefreshTokenIfPending = () => {
+      const refreshToken = sessionStorage.getItem("pending_google_refresh_token");
+      if (!refreshToken) return;
+      sessionStorage.removeItem("pending_google_refresh_token");
+      supabase
+        .from("google_calendar_tokens")
+        .delete()
+        .gte("updated_at", "1900-01-01")
+        .then(() => supabase.from("google_calendar_tokens").insert({ refresh_token: refreshToken }));
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setLoading(false);
-
-      const refreshToken = (session as unknown as { provider_refresh_token?: string })?.provider_refresh_token;
-      if (refreshToken) {
-        supabase
-          .from("google_calendar_tokens")
-          .delete()
-          .gte("updated_at", "1900-01-01")
-          .then(() => supabase.from("google_calendar_tokens").insert({ refresh_token: refreshToken }));
-      }
+      if (session) saveGoogleRefreshTokenIfPending();
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
