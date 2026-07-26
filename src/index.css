@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 33% 97%;
+    --foreground: 20 20% 20%;
+
+    --card: 30 30% 98%;
+    --card-foreground: 20 20% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 20% 20%;
+
+    --primary: 345 40% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 160 25% 85%;
+    --secondary-foreground: 160 30% 25%;
+
+    --muted: 30 20% 93%;
+    --muted-foreground: 20 10% 50%;
+
+    --accent: 160 20% 90%;
+    --accent-foreground: 160 30% 25%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 345 40% 65%;
+
+    --radius: 0.75rem;
+
+    --cream: 35 40% 95%;
+    --mint: 160 25% 85%;
+    --mint-foreground: 160 30% 25%;
+    --rose: 345 40% 65%;
+    --rose-light: 345 50% 92%;
+    --rose-foreground: 0 0% 100%;
+    --warm-gray: 20 10% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    direction: rtl;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
