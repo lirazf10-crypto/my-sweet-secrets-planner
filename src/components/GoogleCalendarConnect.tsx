@@ -9,9 +9,13 @@ export default function GoogleCalendarConnect() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    supabase.auth.getUserIdentities().then(({ data }) => {
-      setLinked(!!data?.identities.some((i) => i.provider === "google"));
-    });
+    supabase
+      .from("google_calendar_tokens")
+      .select("id")
+      .limit(1)
+      .then(({ data }) => {
+        setLinked(!!data && data.length > 0);
+      });
   }, []);
 
   const connect = async () => {
