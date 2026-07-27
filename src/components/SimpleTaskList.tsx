@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil, Check, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { DateTimeFields, formatDateTime } from "@/components/DateTimeFields";
 
 type SimpleTaskTable =
   | "promotion_tasks"
+  | "office_tasks"
   | "kitchen_experiments"
   | "kitchen_routine_tasks"
   | "home_tasks"
@@ -48,6 +49,15 @@ export function SimpleTaskList({
   const [endTime, setEndTime] = useState("");
   const [adding, setAdding] = useState(false);
   const [hideDone, setHideDone] = useState(false);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDetails, setEditDetails] = useState("");
+  const [editShowDetails, setEditShowDetails] = useState(false);
+  const [editDueDate, setEditDueDate] = useState("");
+  const [editStartTime, setEditStartTime] = useState("");
+  const [editEndTime, setEditEndTime] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const queryKey: (string | undefined)[] = filterColumn ? [table, filterColumn, filterValue] : [table];
 
@@ -104,6 +114,37 @@ export function SimpleTaskList({
   const deleteTask = async (id: string) => {
     await supabase.from(table).delete().eq("id", id);
     queryClient.invalidateQueries({ queryKey });
+  };
+
+  const startEdit = (task: SimpleTaskRow) => {
+    setEditingId(task.id);
+    setEditTitle(task.title);
+    setEditDetails(task.details ?? "");
+    setEditShowDetails(!!task.details);
+    setEditDueDate(task.due_date ?? "");
+    setEditStartTime(task.start_time ?? "");
+    setEditEndTime(task.end_time ?? "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async (e: React.FormEvent, id: string) => {
+    e.preventDefault();
+    if (!editTitle.trim()) return;
+    setSavingEdit(true);
+    const payload: Record<string, unknown> = {
+      title: editTitle.trim(),
+      due_date: editDueDate || null,
+      start_time: editDueDate && editStartTime ? editStartTime : null,
+      end_time: editDueDate && editEndTime ? editEndTime : null,
+    };
+    if (withDetails) payload.details = editDetails.trim() || null;
+    await supabase.from(table).update(payload as never).eq("id", id);
+    await queryClient.invalidateQueries({ queryKey });
+    setEditingId(null);
+    setSavingEdit(false);
   };
 
   const visibleTasks = hideDone ? tasks.filter((t) => !t.is_done) : tasks;
@@ -168,6 +209,59 @@ export function SimpleTaskList({
       <div className="space-y-1">
         {visibleTasks.map((task) => {
           const dt = formatDateTime(task.due_date, task.start_time, task.end_time);
+
+          if (editingId === task.id) {
+            return (
+              <form
+                key={task.id}
+                onSubmit={(e) => saveEdit(e, task.id)}
+                className="space-y-2 rounded-md border border-primary bg-card px-3 py-2"
+              >
+                <Input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  autoFocus
+                />
+                {withDetails && (
+                  !editShowDetails ? (
+                    <button
+                      type="button"
+                      onClick={() => setEditShowDetails(true)}
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      + הוספת פירוט
+                    </button>
+                  ) : (
+                    <Textarea
+                      placeholder="פירוט נוסף (אופציונלי)"
+                      value={editDetails}
+                      onChange={(e) => setEditDetails(e.target.value)}
+                      className="min-h-[60px]"
+                    />
+                  )
+                )}
+                <DateTimeFields
+                  dueDate={editDueDate}
+                  onDueDateChange={setEditDueDate}
+                  startTime={editStartTime}
+                  onStartTimeChange={setEditStartTime}
+                  endTime={editEndTime}
+                  onEndTimeChange={setEditEndTime}
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" size="sm" disabled={savingEdit}>
+                    <Check className="w-4 h-4 ml-1" />
+                    שמירה
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={cancelEdit}>
+                    <X className="w-4 h-4 ml-1" />
+                    ביטול
+                  </Button>
+                </div>
+              </form>
+            );
+          }
+
           return (
             <div key={task.id} className="flex items-start gap-3 rounded-md border border-border bg-card px-3 py-2">
               <input
@@ -183,6 +277,13 @@ export function SimpleTaskList({
                 )}
                 {dt && <p className="text-xs text-muted-foreground mt-0.5">{dt}</p>}
               </div>
+              <button
+                onClick={() => startEdit(task)}
+                className="text-muted-foreground hover:text-foreground shrink-0 mt-1"
+                aria-label="עריכה"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
               <button
                 onClick={() => deleteTask(task.id)}
                 className="text-muted-foreground hover:text-destructive shrink-0 mt-1"

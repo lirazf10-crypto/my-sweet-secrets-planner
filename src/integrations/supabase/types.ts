@@ -122,6 +122,39 @@ export type Database = {
         }
         Relationships: []
       }
+      office_tasks: {
+        Row: {
+          id: string
+          title: string
+          details: string | null
+          is_done: boolean
+          due_date: string | null
+          start_time: string | null
+          end_time: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          details?: string | null
+          is_done?: boolean
+          due_date?: string | null
+          start_time?: string | null
+          end_time?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          details?: string | null
+          is_done?: boolean
+          due_date?: string | null
+          start_time?: string | null
+          end_time?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       content_items: {
         Row: {
           id: string
@@ -129,6 +162,7 @@ export type Database = {
           hook: string | null
           storyboard: string | null
           body: string | null
+          notes: string | null
           status: string
           due_date: string | null
           start_time: string | null
@@ -141,6 +175,7 @@ export type Database = {
           hook?: string | null
           storyboard?: string | null
           body?: string | null
+          notes?: string | null
           status?: string
           due_date?: string | null
           start_time?: string | null
@@ -153,6 +188,7 @@ export type Database = {
           hook?: string | null
           storyboard?: string | null
           body?: string | null
+          notes?: string | null
           status?: string
           due_date?: string | null
           start_time?: string | null
