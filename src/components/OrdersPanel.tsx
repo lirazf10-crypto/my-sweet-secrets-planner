@@ -118,7 +118,7 @@ export default function OrdersPanel() {
 
       if (deliveryDate && createdOrder) {
         supabase.functions
-          .invoke("sync-order-event", {
+          .invoke("smart-processor", {
             body: {
               orderId: createdOrder.id,
               description: description.trim(),
