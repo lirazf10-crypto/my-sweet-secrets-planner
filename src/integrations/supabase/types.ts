@@ -50,6 +50,7 @@ export type Database = {
           price: number | null
           status: string
           notes: string | null
+          google_event_id: string | null
           created_at: string
         }
         Insert: {
@@ -62,6 +63,7 @@ export type Database = {
           price?: number | null
           status?: string
           notes?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Update: {
@@ -74,6 +76,7 @@ export type Database = {
           price?: number | null
           status?: string
           notes?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Relationships: [

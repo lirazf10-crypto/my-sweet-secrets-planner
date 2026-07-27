@@ -101,16 +101,34 @@ export default function OrdersPanel() {
         customerId = created.id;
       }
 
-      const { error: orderError } = await supabase.from("orders").insert({
-        customer_id: customerId,
-        description: description.trim(),
-        delivery_date: deliveryDate || null,
-        start_time: deliveryDate && startTime ? startTime : null,
-        end_time: deliveryDate && endTime ? endTime : null,
-        price: price ? Number(price) : null,
-        notes: notes.trim() || null,
-      });
+      const { data: createdOrder, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          customer_id: customerId,
+          description: description.trim(),
+          delivery_date: deliveryDate || null,
+          start_time: deliveryDate && startTime ? startTime : null,
+          end_time: deliveryDate && endTime ? endTime : null,
+          price: price ? Number(price) : null,
+          notes: notes.trim() || null,
+        })
+        .select("id")
+        .single();
       if (orderError) throw orderError;
+
+      if (deliveryDate && createdOrder) {
+        supabase.functions
+          .invoke("sync-order-event", {
+            body: {
+              orderId: createdOrder.id,
+              description: description.trim(),
+              deliveryDate,
+              startTime: startTime || null,
+              endTime: endTime || null,
+            },
+          })
+          .catch(() => {});
+      }
 
       await queryClient.invalidateQueries({ queryKey: ["orders"] });
       resetForm();
