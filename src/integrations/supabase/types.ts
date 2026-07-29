@@ -98,6 +98,7 @@ export type Database = {
           due_date: string | null
           start_time: string | null
           end_time: string | null
+          google_event_id: string | null
           created_at: string
         }
         Insert: {
@@ -108,6 +109,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Update: {
@@ -118,6 +120,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -131,6 +134,7 @@ export type Database = {
           due_date: string | null
           start_time: string | null
           end_time: string | null
+          google_event_id: string | null
           created_at: string
         }
         Insert: {
@@ -141,6 +145,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Update: {
@@ -151,6 +156,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -167,6 +173,7 @@ export type Database = {
           due_date: string | null
           start_time: string | null
           end_time: string | null
+          google_event_id: string | null
           created_at: string
         }
         Insert: {
@@ -180,6 +187,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Update: {
@@ -193,6 +201,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -206,6 +215,7 @@ export type Database = {
           due_date: string | null
           start_time: string | null
           end_time: string | null
+          google_event_id: string | null
           created_at: string
         }
         Insert: {
@@ -216,6 +226,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Update: {
@@ -226,6 +237,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -239,6 +251,7 @@ export type Database = {
           due_date: string | null
           start_time: string | null
           end_time: string | null
+          google_event_id: string | null
           created_at: string
         }
         Insert: {
@@ -249,6 +262,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Update: {
@@ -259,6 +273,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -272,6 +287,7 @@ export type Database = {
           due_date: string | null
           start_time: string | null
           end_time: string | null
+          google_event_id: string | null
           created_at: string
         }
         Insert: {
@@ -282,6 +298,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Update: {
@@ -292,6 +309,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -348,6 +366,7 @@ export type Database = {
           due_date: string | null
           start_time: string | null
           end_time: string | null
+          google_event_id: string | null
           created_at: string
         }
         Insert: {
@@ -359,6 +378,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Update: {
@@ -370,6 +390,7 @@ export type Database = {
           due_date?: string | null
           start_time?: string | null
           end_time?: string | null
+          google_event_id?: string | null
           created_at?: string
         }
         Relationships: [

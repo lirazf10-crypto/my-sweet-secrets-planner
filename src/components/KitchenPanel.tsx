@@ -86,6 +86,7 @@ export default function KitchenPanel() {
           table="kitchen_experiments"
           addPlaceholder="מה יש להכין או לנסות..."
           emptyText="אין עדיין דברים לרשום."
+          calendarLabel="מטבח (ניסוי)"
         />
       </div>
       <div className="border-t border-border" />
@@ -95,6 +96,7 @@ export default function KitchenPanel() {
           table="kitchen_routine_tasks"
           addPlaceholder="משימה שוטפת חדשה..."
           emptyText="אין עדיין משימות שוטפות."
+          calendarLabel="מטבח (שוטף)"
         />
       </div>
       <div className="border-t border-border" />

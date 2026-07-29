@@ -9,6 +9,7 @@ export default function PromotionPanel() {
           table="office_tasks"
           addPlaceholder="משימת משרד חדשה..."
           emptyText="אין עדיין משימות משרד."
+          calendarLabel="משרד"
         />
       </div>
       <div className="border-t border-border" />
@@ -18,6 +19,7 @@ export default function PromotionPanel() {
           table="promotion_tasks"
           addPlaceholder="משימת קידום חדשה..."
           emptyText="אין עדיין משימות קידום."
+          calendarLabel="קידום העסק"
         />
       </div>
     </div>

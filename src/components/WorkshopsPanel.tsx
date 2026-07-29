@@ -48,6 +48,7 @@ function WorkshopCard({ id, name, onDeleted }: { id: string; name: string; onDel
           withDetails
           filterColumn="workshop_plan_id"
           filterValue={id}
+          calendarLabel={`סדנה: ${name}`}
         />
       </CardContent>
     </Card>

@@ -15,8 +15,32 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const ALLOWED_TABLES = new Set([
+    "orders",
+    "home_tasks",
+    "kitchen_experiments",
+    "kitchen_routine_tasks",
+    "office_tasks",
+    "promotion_tasks",
+    "workshop_plan_ideas",
+    "content_items",
+  ]);
+
   try {
-    const { orderId, description, deliveryDate, startTime, endTime } = await req.json();
+    const body = await req.json();
+    // Orders keep their original request shape for backward compatibility.
+    // Every other table sends { table, id, title, dueDate, startTime, endTime }.
+    const table: string = body.table ?? "orders";
+    if (!ALLOWED_TABLES.has(table)) {
+      return new Response(JSON.stringify({ error: "Unknown table" }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const recordId: string = table === "orders" ? body.orderId : body.id;
+    const summaryText: string = table === "orders" ? `הזמנה: ${body.description}` : body.title;
+    const deliveryDate: string = table === "orders" ? body.deliveryDate : body.dueDate;
+    const { startTime, endTime } = body;
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -54,7 +78,7 @@ Deno.serve(async (req) => {
 
     const hasTime = !!startTime;
     const event: Record<string, unknown> = {
-      summary: `הזמנה: ${description}`,
+      summary: summaryText,
     };
     if (hasTime) {
       event.start = { dateTime: `${deliveryDate}T${startTime}:00`, timeZone: 'Asia/Jerusalem' };
@@ -64,13 +88,13 @@ Deno.serve(async (req) => {
       event.end = { date: deliveryDate };
     }
 
-    const { data: orderRow } = await supabaseAdmin
-      .from('orders')
+    const { data: sourceRow } = await supabaseAdmin
+      .from(table)
       .select('google_event_id')
-      .eq('id', orderId)
+      .eq('id', recordId)
       .maybeSingle();
 
-    const existingEventId = orderRow?.google_event_id;
+    const existingEventId = sourceRow?.google_event_id;
     const calRes = existingEventId
       ? await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${existingEventId}`, {
           method: 'PATCH',
@@ -92,7 +116,7 @@ Deno.serve(async (req) => {
     }
 
     if (!existingEventId) {
-      await supabaseAdmin.from('orders').update({ google_event_id: calData.id }).eq('id', orderId);
+      await supabaseAdmin.from(table).update({ google_event_id: calData.id }).eq('id', recordId);
     }
 
     return new Response(JSON.stringify({ success: true, eventId: calData.id }), {

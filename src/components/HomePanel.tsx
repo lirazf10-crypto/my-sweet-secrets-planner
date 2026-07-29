@@ -6,6 +6,7 @@ export default function HomePanel() {
       table="home_tasks"
       addPlaceholder="סידור חדש..."
       emptyText="אין עדיין סידורים."
+      calendarLabel="בית"
     />
   );
 }

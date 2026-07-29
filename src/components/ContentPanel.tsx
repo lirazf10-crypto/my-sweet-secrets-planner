@@ -56,6 +56,8 @@ export default function ContentPanel() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState("");
 
+  const [syncError, setSyncError] = useState("");
+
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["content_items"],
     queryFn: async () => {
@@ -92,21 +94,33 @@ export default function ContentPanel() {
       return;
     }
     setSaving(true);
+    const trimmedCategory = category.trim();
+    const trimmedHook = hook.trim();
+    const finalDueDate = dueDate || null;
+    const finalStartTime = dueDate && startTime ? startTime : null;
+    const finalEndTime = dueDate && endTime ? endTime : null;
     try {
-      const { error } = await supabase.from("content_items").insert({
-        category: category.trim(),
-        hook: hook.trim() || null,
-        storyboard: storyboard.trim() || null,
-        body: body.trim() || null,
-        notes: notes.trim() || null,
-        due_date: dueDate || null,
-        start_time: dueDate && startTime ? startTime : null,
-        end_time: dueDate && endTime ? endTime : null,
-      });
+      const { data: created, error } = await supabase
+        .from("content_items")
+        .insert({
+          category: trimmedCategory,
+          hook: trimmedHook || null,
+          storyboard: storyboard.trim() || null,
+          body: body.trim() || null,
+          notes: notes.trim() || null,
+          due_date: finalDueDate,
+          start_time: finalStartTime,
+          end_time: finalEndTime,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["content_items"] });
       resetForm();
       setShowForm(false);
+      if (finalDueDate) {
+        syncToCalendar(created.id, trimmedHook || trimmedCategory, finalDueDate, finalStartTime, finalEndTime);
+      }
     } catch {
       setFormError("משהו השתבש בשמירה, נסי שוב");
     } finally {
@@ -149,27 +163,53 @@ export default function ContentPanel() {
       return;
     }
     setSavingEdit(true);
+    const trimmedCategory = editCategory.trim();
+    const trimmedHook = editHook.trim();
+    const finalDueDate = editDueDate || null;
+    const finalStartTime = editDueDate && editStartTime ? editStartTime : null;
+    const finalEndTime = editDueDate && editEndTime ? editEndTime : null;
     try {
       const { error } = await supabase
         .from("content_items")
         .update({
-          category: editCategory.trim(),
-          hook: editHook.trim() || null,
+          category: trimmedCategory,
+          hook: trimmedHook || null,
           storyboard: editStoryboard.trim() || null,
           body: editBody.trim() || null,
           notes: editNotes.trim() || null,
-          due_date: editDueDate || null,
-          start_time: editDueDate && editStartTime ? editStartTime : null,
-          end_time: editDueDate && editEndTime ? editEndTime : null,
+          due_date: finalDueDate,
+          start_time: finalStartTime,
+          end_time: finalEndTime,
         })
         .eq("id", id);
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["content_items"] });
       setEditingId(null);
+      if (finalDueDate) {
+        syncToCalendar(id, trimmedHook || trimmedCategory, finalDueDate, finalStartTime, finalEndTime);
+      }
     } catch {
       setEditError("משהו השתבש בשמירה, נסי שוב");
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  const syncToCalendar = async (
+    id: string,
+    syncTitle: string,
+    due: string,
+    start: string | null,
+    end: string | null,
+  ) => {
+    setSyncError("");
+    try {
+      const { error } = await supabase.functions.invoke("smart-processor", {
+        body: { table: "content_items", id, title: `תוכן: ${syncTitle}`, dueDate: due, startTime: start, endTime: end },
+      });
+      if (error) throw error;
+    } catch {
+      setSyncError("השליחה ליומן נכשלה, נסי שוב");
     }
   };
 
@@ -263,6 +303,8 @@ export default function ContentPanel() {
         </div>
       )}
 
+      {syncError && <p className="text-sm text-destructive">{syncError}</p>}
+
       {isLoading && <p className="text-muted-foreground">טוענת...</p>}
       {!isLoading && items.length === 0 && (
         <p className="text-muted-foreground">אין עדיין תוכן.</p>
@@ -339,7 +381,7 @@ export default function ContentPanel() {
                     <span className="text-xs text-muted-foreground">{item.category}</span>
                     {item.hook && <p className="font-medium">{item.hook}</p>}
                   </div>
-                  <div className="flex gap-3 shrink-0">
+                  <div className="flex gap-3 shrink-0 items-center">
                     <button
                       onClick={() => startEdit(item)}
                       className="text-muted-foreground hover:text-foreground text-xs"

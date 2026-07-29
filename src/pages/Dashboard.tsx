@@ -10,6 +10,7 @@ import ContentPanel from "@/components/ContentPanel";
 import KitchenPanel from "@/components/KitchenPanel";
 import HomePanel from "@/components/HomePanel";
 import WorkshopsPanel from "@/components/WorkshopsPanel";
+import OverviewPanel from "@/components/OverviewPanel";
 import GoogleCalendarConnect from "@/components/GoogleCalendarConnect";
 
 const PROJECTS = [
@@ -51,6 +52,8 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-4xl mx-auto p-4 space-y-4">
+        <OverviewPanel />
+        <div className="border-t border-border" />
         <div className="flex flex-wrap gap-2">
           {PROJECTS.map((p) => (
             <button

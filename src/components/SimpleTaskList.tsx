@@ -32,6 +32,7 @@ export function SimpleTaskList({
   withDetails = true,
   filterColumn,
   filterValue,
+  calendarLabel,
 }: {
   table: SimpleTaskTable;
   addPlaceholder: string;
@@ -39,6 +40,7 @@ export function SimpleTaskList({
   withDetails?: boolean;
   filterColumn?: string;
   filterValue?: string;
+  calendarLabel: string;
 }) {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
@@ -58,6 +60,8 @@ export function SimpleTaskList({
   const [editStartTime, setEditStartTime] = useState("");
   const [editEndTime, setEditEndTime] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
+
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   const queryKey: (string | undefined)[] = filterColumn ? [table, filterColumn, filterValue] : [table];
 
@@ -88,22 +92,41 @@ export function SimpleTaskList({
     setEndTime("");
   };
 
+  const syncToCalendar = async (id: string, syncTitle: string, due: string, start: string | null, end: string | null) => {
+    setSyncError(null);
+    try {
+      const { error } = await supabase.functions.invoke("smart-processor", {
+        body: { table, id, title: `${calendarLabel}: ${syncTitle}`, dueDate: due, startTime: start, endTime: end },
+      });
+      if (error) throw error;
+    } catch {
+      setSyncError("השליחה ליומן נכשלה, נסי שוב");
+    }
+  };
+
   const addTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     setAdding(true);
+    const trimmedTitle = title.trim();
+    const finalDueDate = dueDate || null;
+    const finalStartTime = dueDate && startTime ? startTime : null;
+    const finalEndTime = dueDate && endTime ? endTime : null;
     const payload: Record<string, unknown> = {
-      title: title.trim(),
-      due_date: dueDate || null,
-      start_time: dueDate && startTime ? startTime : null,
-      end_time: dueDate && endTime ? endTime : null,
+      title: trimmedTitle,
+      due_date: finalDueDate,
+      start_time: finalStartTime,
+      end_time: finalEndTime,
     };
     if (withDetails) payload.details = details.trim() || null;
     if (filterColumn && filterValue) payload[filterColumn] = filterValue;
-    await supabase.from(table).insert(payload as never);
+    const { data: created } = await supabase.from(table).insert(payload as never).select("id").single();
     await queryClient.invalidateQueries({ queryKey });
     resetForm();
     setAdding(false);
+    if (created && finalDueDate) {
+      syncToCalendar((created as { id: string }).id, trimmedTitle, finalDueDate, finalStartTime, finalEndTime);
+    }
   };
 
   const toggleDone = async (id: string, isDone: boolean) => {
@@ -134,17 +157,24 @@ export function SimpleTaskList({
     e.preventDefault();
     if (!editTitle.trim()) return;
     setSavingEdit(true);
+    const trimmedTitle = editTitle.trim();
+    const finalDueDate = editDueDate || null;
+    const finalStartTime = editDueDate && editStartTime ? editStartTime : null;
+    const finalEndTime = editDueDate && editEndTime ? editEndTime : null;
     const payload: Record<string, unknown> = {
-      title: editTitle.trim(),
-      due_date: editDueDate || null,
-      start_time: editDueDate && editStartTime ? editStartTime : null,
-      end_time: editDueDate && editEndTime ? editEndTime : null,
+      title: trimmedTitle,
+      due_date: finalDueDate,
+      start_time: finalStartTime,
+      end_time: finalEndTime,
     };
     if (withDetails) payload.details = editDetails.trim() || null;
     await supabase.from(table).update(payload as never).eq("id", id);
     await queryClient.invalidateQueries({ queryKey });
     setEditingId(null);
     setSavingEdit(false);
+    if (finalDueDate) {
+      syncToCalendar(id, trimmedTitle, finalDueDate, finalStartTime, finalEndTime);
+    }
   };
 
   const visibleTasks = hideDone ? tasks.filter((t) => !t.is_done) : tasks;
@@ -199,6 +229,8 @@ export function SimpleTaskList({
           {hideDone ? "מציגה רק פתוחות" : "מציגה הכל"}
         </button>
       )}
+
+      {syncError && <p className="text-sm text-destructive">{syncError}</p>}
 
       {isLoading && <p className="text-muted-foreground">טוענת...</p>}
       {!isLoading && tasks.length === 0 && <p className="text-muted-foreground">{emptyText}</p>}
