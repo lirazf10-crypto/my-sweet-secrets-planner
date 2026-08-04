@@ -57,10 +57,19 @@ export default function GoogleCalendarConnect() {
   return (
     <div className="flex flex-col items-end gap-1">
       {linked ? (
-        <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" title="מחוברת ליומן גוגל">
-          <CalendarCheck className="w-4 h-4 text-primary" />
-          יומן מחובר
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" title="מחוברת ליומן גוגל">
+            <CalendarCheck className="w-4 h-4 text-primary" />
+            יומן מחובר
+          </span>
+          <button
+            onClick={connect}
+            disabled={connecting}
+            className="text-xs text-muted-foreground hover:text-foreground underline"
+          >
+            חיבור מחדש
+          </button>
+        </div>
       ) : (
         <Button variant="outline" size="sm" onClick={connect} disabled={connecting}>
           <CalendarPlus className="w-4 h-4" />
