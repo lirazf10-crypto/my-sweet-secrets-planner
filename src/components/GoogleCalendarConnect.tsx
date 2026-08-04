@@ -38,6 +38,21 @@ export default function GoogleCalendarConnect() {
   const connect = async () => {
     setConnecting(true);
     setError("");
+
+    // linkIdentity refuses to re-link a provider that's already linked
+    // (identity_already_exists) - if Google is already attached, drop it
+    // first so the OAuth flow below can create a fresh grant.
+    const { data: identitiesData } = await supabase.auth.getUserIdentities();
+    const googleIdentity = identitiesData?.identities.find((i) => i.provider === "google");
+    if (googleIdentity) {
+      const { error: unlinkError } = await supabase.auth.unlinkIdentity(googleIdentity);
+      if (unlinkError) {
+        setError(unlinkError.message);
+        setConnecting(false);
+        return;
+      }
+    }
+
     const { error } = await supabase.auth.linkIdentity({
       provider: "google",
       options: {
