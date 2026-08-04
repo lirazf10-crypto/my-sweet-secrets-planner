@@ -89,7 +89,11 @@ export default function OrdersPanel() {
 
   const searchLower = search.trim().toLowerCase();
   const filteredOrders = orders
-    .filter((o) => statusFilter === "all" || o.status === statusFilter)
+    .filter((o) => {
+      if (statusFilter !== "all") return o.status === statusFilter;
+      if (searchLower) return true;
+      return o.status !== "delivered" && o.status !== "cancelled";
+    })
     .filter((o) => !searchLower || (o.customers?.name ?? "").toLowerCase().includes(searchLower));
 
   const updateStatus = async (orderId: string, status: string) => {
@@ -301,7 +305,7 @@ export default function OrdersPanel() {
               statusFilter === "all" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted"
             }`}
           >
-            הכל
+            פעילות
           </button>
           {STATUS_OPTIONS.map(([value, label]) => (
             <button

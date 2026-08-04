@@ -1,11 +1,23 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/components/DateTimeFields";
 
+type SourceTable =
+  | "home_tasks"
+  | "kitchen_experiments"
+  | "kitchen_routine_tasks"
+  | "office_tasks"
+  | "promotion_tasks"
+  | "workshop_plan_ideas"
+  | "content_items"
+  | "orders";
+
 type OverviewItem = {
   id: string;
-  source: string;
+  dbId: string;
+  source: SourceTable;
   title: string;
   subtitle: string | null;
   due_date: string;
@@ -14,8 +26,8 @@ type OverviewItem = {
   done: boolean;
 };
 
-const SOURCE_LABELS: Record<string, string> = {
-  home: "בית",
+const SOURCE_LABELS: Record<SourceTable, string> = {
+  home_tasks: "בית",
   kitchen_experiments: "מטבח (ניסוי)",
   kitchen_routine_tasks: "מטבח (שוטף)",
   office_tasks: "משרד",
@@ -23,6 +35,17 @@ const SOURCE_LABELS: Record<string, string> = {
   content_items: "תוכן",
   orders: "הזמנה",
   workshop_plan_ideas: "סדנה",
+};
+
+const TAB_FOR_SOURCE: Record<SourceTable, string> = {
+  home_tasks: "home",
+  kitchen_experiments: "kitchen",
+  kitchen_routine_tasks: "kitchen",
+  office_tasks: "promotion",
+  promotion_tasks: "promotion",
+  content_items: "content",
+  orders: "orders",
+  workshop_plan_ideas: "workshops",
 };
 
 type SimpleRow = {
@@ -34,11 +57,12 @@ type SimpleRow = {
   end_time: string | null;
 };
 
-function mapSimple(source: string, rows: SimpleRow[] | null): OverviewItem[] {
+function mapSimple(source: SourceTable, rows: SimpleRow[] | null): OverviewItem[] {
   return (rows ?? [])
     .filter((r) => r.due_date)
     .map((r) => ({
       id: `${source}-${r.id}`,
+      dbId: r.id,
       source,
       title: r.title,
       subtitle: null,
@@ -49,7 +73,8 @@ function mapSimple(source: string, rows: SimpleRow[] | null): OverviewItem[] {
     }));
 }
 
-export default function OverviewPanel() {
+export default function OverviewPanel({ onNavigate }: { onNavigate: (tab: string) => void }) {
+  const queryClient = useQueryClient();
   const [hideDone, setHideDone] = useState(true);
 
   const { data: items = [], isLoading } = useQuery({
@@ -92,6 +117,7 @@ export default function OverviewPanel() {
       (contentResult.data ?? []).forEach((r) => {
         merged.push({
           id: `content_items-${r.id}`,
+          dbId: r.id,
           source: "content_items",
           title: r.hook || r.category,
           subtitle: r.hook ? r.category : null,
@@ -113,6 +139,7 @@ export default function OverviewPanel() {
       }[] ?? []).forEach((r) => {
         merged.push({
           id: `orders-${r.id}`,
+          dbId: r.id,
           source: "orders",
           title: r.description,
           subtitle: r.customers?.name ?? null,
@@ -133,6 +160,12 @@ export default function OverviewPanel() {
   });
 
   const visibleItems = hideDone ? items.filter((i) => !i.done) : items;
+
+  const deleteItem = async (item: OverviewItem) => {
+    await supabase.from(item.source).delete().eq("id", item.dbId);
+    await queryClient.invalidateQueries({ queryKey: ["overview_dated_items"] });
+    await queryClient.invalidateQueries({ queryKey: [item.source] });
+  };
 
   return (
     <div className="space-y-3">
@@ -164,7 +197,12 @@ export default function OverviewPanel() {
             key={item.id}
             className="flex items-start gap-3 rounded-md border border-border bg-card px-3 py-2"
           >
-            <div className="flex-1 min-w-0">
+            <button
+              type="button"
+              onClick={() => onNavigate(TAB_FOR_SOURCE[item.source])}
+              className="flex-1 min-w-0 text-right"
+              title="לעריכה בטאב המקורי"
+            >
               <p className={item.done ? "line-through text-muted-foreground" : ""}>
                 {item.title}
                 {item.subtitle && <span className="text-muted-foreground"> — {item.subtitle}</span>}
@@ -172,10 +210,17 @@ export default function OverviewPanel() {
               <p className="text-xs text-muted-foreground mt-0.5">
                 {formatDateTime(item.due_date, item.start_time, item.end_time)}
               </p>
-            </div>
+            </button>
             <span className="text-xs text-muted-foreground shrink-0 rounded-md border border-border px-1.5 py-0.5">
               {SOURCE_LABELS[item.source]}
             </span>
+            <button
+              onClick={() => deleteItem(item)}
+              className="text-muted-foreground hover:text-destructive shrink-0"
+              aria-label="מחיקה"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
         ))}
       </div>

@@ -52,7 +52,7 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-4xl mx-auto p-4 space-y-4">
-        <OverviewPanel />
+        <OverviewPanel onNavigate={setActiveTab} />
         <div className="border-t border-border" />
         <div className="flex flex-wrap gap-2">
           {PROJECTS.map((p) => (

@@ -50,7 +50,7 @@ export function SimpleTaskList({
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [adding, setAdding] = useState(false);
-  const [hideDone, setHideDone] = useState(false);
+  const [hideDone, setHideDone] = useState(true);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
